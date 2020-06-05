@@ -4,6 +4,11 @@ This project uses Quarkus, the Supersonic Subatomic Java Framework.
 
 If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
 
+This is a simples project based in account bank example using Kotlin, Quarkus, MySQL and Docker to deploy our database image, maybe if you clone this repository you'll
+need to install docker and pull up the database image.
+
+To execute mysql image:  docker run -p 3306:3306 -e MYSQL_ROOT_PASSWORD=you_password -e MYSQL_DATABASE=you_database -d --rm mysql  
+
 ## Running the application in dev mode
 
 You can run your application in dev mode that enables live coding using:
