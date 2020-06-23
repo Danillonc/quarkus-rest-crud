@@ -5,11 +5,19 @@ import br.com.repository.CustomerRepository
 import br.com.service.CustomerService
 import org.springframework.stereotype.Service
 import java.lang.Exception
+import javax.transaction.Transactional
 
+/**
+ * Represents a service implementation layer containing business logic for contracts customer.
+ */
 @Service
 class CustomerServiceImpl(val customerRepository: CustomerRepository): CustomerService {
 
-    override fun persist(customer: Customer): Customer = customerRepository.save(customer)
+
+    override fun persist(customer: Customer): Customer {
+        return customerRepository.save(customer)
+    }
+
 
     override fun findByCpf(cpf: String): Customer? {
         try {

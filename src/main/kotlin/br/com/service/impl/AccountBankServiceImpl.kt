@@ -21,7 +21,7 @@ class AccountBankServiceImpl(val accountBankRepository: AccountBankRepository): 
     override fun getBalance(account: Account): BigDecimal {
         var accBalance: Account? = null
         try {
-            accBalance = accountBankRepository.findById(account.id!!).orElseThrow()
+            accBalance = accountBankRepository.findById(account.id).orElseThrow()
         }catch (e: Exception){
             logger.info("Dados da conta bancária não encontrado para retorno do saldo .")
         }

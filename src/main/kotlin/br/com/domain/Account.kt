@@ -1,6 +1,7 @@
 package br.com.domain
 
 import br.com.enums.AccountTypeEnum
+import com.fasterxml.jackson.annotation.JsonBackReference
 import java.math.BigDecimal
 import javax.persistence.*
 
@@ -9,9 +10,20 @@ import javax.persistence.*
  */
 @Entity
 data class Account (
-        val balance: BigDecimal? = BigDecimal.ZERO,
-        val overdrawn: BigDecimal? = BigDecimal.ZERO,
-        @Enumerated(EnumType.STRING) val type: AccountTypeEnum,
-        @ManyToOne val customer: Customer,
-        @Id val id: Long? = null
+        var balance: BigDecimal? = BigDecimal.ZERO,
+
+        var overdrawn: BigDecimal? = BigDecimal.ZERO,
+
+        @Enumerated(EnumType.STRING)
+        var type: AccountTypeEnum,
+
+        @JsonBackReference
+        @ManyToOne(fetch = FetchType.EAGER)
+        @JoinColumn(name = "customer_id")
+        var customer: Customer? = null,
+
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        var id: Long = 0
+
 )

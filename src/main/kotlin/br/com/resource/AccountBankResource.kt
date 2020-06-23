@@ -46,13 +46,13 @@ class AccountBankResource(val accountService: AccountBankService, val customerSe
         val response: Response<AccountBankDto> = Response<AccountBankDto>()
         val result: Set<ConstraintViolation<AccountBankDto>> = this.validator.validate(accountBankDto)
 
-        //using hibernate validator because quarkus 1.5 doesn't improve support to BindingResult spring.
+        //using hibernate validator because quarkus 1.5 doesn't support BindingResult spring.
         if(!result.isEmpty()){
             for(erro in result) response.erros.add(erro.message)
             return ResponseEntity.badRequest().body(response)
         }
 
-        val customer: Customer? = customerService.findByCpf(accountBankDto.cpf!!)
+        val customer: Customer? = customerService.findByCpf(accountBankDto.cpf)
         validateCustomer(customer, response)
         if(!response.erros.isEmpty()){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response)
@@ -65,7 +65,7 @@ class AccountBankResource(val accountService: AccountBankService, val customerSe
         return ResponseEntity.ok().body(response)
     }
 
-    private fun convertToDto(account: Account): AccountBankDto = AccountBankDto(account.customer.name!!, account.customer.email!!, account.customer.cpf)
+    private fun convertToDto(account: Account): AccountBankDto = AccountBankDto(account.customer?.cpf!!)
 
     private fun convertToAccount(accountDto: AccountBankDto, customer: Customer): Account = Account(BigDecimal.ZERO, BigDecimal.ZERO, AccountTypeEnum.PF, customer)
 
