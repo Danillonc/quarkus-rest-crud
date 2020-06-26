@@ -12,4 +12,6 @@ interface CustomerService {
     fun findByCpf(cpf: String): Customer?
 
     fun findById(id: String): Customer?
+
+    fun findAll(): MutableIterable<Customer>?
 }

@@ -1,5 +1,6 @@
 package br.com.dto
 
+import br.com.domain.Account
 import org.hibernate.validator.constraints.Length
 import org.hibernate.validator.constraints.br.CPF
 import javax.validation.constraints.Email
@@ -21,5 +22,6 @@ data class CustomerDto (
         @get:Email(message = "Email invalid.")
         val email: String = "",
         val surname: String? = "",
-        val birthday: String? = ""
+        val birthday: String? = "",
+        val accounts: List<Account> = emptyList()
 )

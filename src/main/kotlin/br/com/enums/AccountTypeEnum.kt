@@ -11,5 +11,8 @@ enum class AccountTypeEnum(val type: String,val desc: String) {
         fun getAccountTypeByType(type: String): Boolean {
             return AccountTypeEnum.values().any { it.type == type }
         }
+        fun getAccountType(type: String): AccountTypeEnum {
+            return AccountTypeEnum.values().find { it.type == type }!!
+        }
     }
 }

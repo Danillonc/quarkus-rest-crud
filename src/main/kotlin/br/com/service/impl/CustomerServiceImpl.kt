@@ -11,7 +11,7 @@ import javax.transaction.Transactional
  * Represents a service implementation layer containing business logic for contracts customer.
  */
 @Service
-class CustomerServiceImpl(val customerRepository: CustomerRepository): CustomerService {
+class CustomerServiceImpl(val customerRepository: CustomerRepository) : CustomerService {
 
 
     override fun persist(customer: Customer): Customer {
@@ -21,9 +21,9 @@ class CustomerServiceImpl(val customerRepository: CustomerRepository): CustomerS
 
     override fun findByCpf(cpf: String): Customer? {
         try {
-             return customerRepository.findByCpf(cpf)
-        }catch (e: Exception){
-             return null
+            return customerRepository.findByCpf(cpf)
+        } catch (e: Exception) {
+            return null
         }
 
     }
@@ -31,4 +31,6 @@ class CustomerServiceImpl(val customerRepository: CustomerRepository): CustomerS
     override fun findById(id: String): Customer? {
         TODO("Not yet implemented")
     }
+
+    override fun findAll(): MutableIterable<Customer>? = customerRepository.findAll()
 }
