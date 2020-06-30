@@ -42,8 +42,8 @@ class AccountBankResource(val accountService: AccountBankService, val customerSe
 
     @Operation(summary = "API")
     @PostMapping("/create")
-    fun createAccount(@RequestBody accountBankDto: AccountBankDto): ResponseEntity<Response<AccountBankDto>> {
-        val response: Response<AccountBankDto> = Response<AccountBankDto>()
+    fun createAccount(@RequestBody accountBankDto: AccountBankDto): ResponseEntity<Response<Void>> {
+        var response: Response<Void> = Response()
         val result: Set<ConstraintViolation<AccountBankDto>> = this.validator.validate(accountBankDto)
 
         //using hibernate validator because quarkus 1.5 doesn't support BindingResult spring.
@@ -52,27 +52,8 @@ class AccountBankResource(val accountService: AccountBankService, val customerSe
             return ResponseEntity.badRequest().body(response)
         }
 
-        val customer: Customer? = customerService.findByCpf(accountBankDto.cpf)
-        validateCustomer(customer, response)
-        if (!response.erros.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response)
-        }
-
-        var account: Account = convertToAccount(accountBankDto, customer!!)
-        account = accountService.persist(account)
-
-        response.data = convertToDto(account)
+        response = accountService.persist(accountBankDto)
         return ResponseEntity.ok().body(response)
-    }
-
-    private fun convertToDto(account: Account): AccountBankDto = AccountBankDto(account.customer?.cpf!!)
-
-    private fun convertToAccount(accountDto: AccountBankDto, customer: Customer): Account = Account(BigDecimal.ZERO, BigDecimal.ZERO, AccountTypeEnum.getAccountType(accountDto.accountType), customer)
-
-    private fun validateCustomer(customer: Customer?, response: Response<AccountBankDto>) {
-        if (customer == null) {
-            response.erros.add("Customer not found.")
-        }
     }
 
 }

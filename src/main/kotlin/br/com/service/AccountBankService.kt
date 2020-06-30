@@ -1,6 +1,8 @@
 package br.com.service
 
 import br.com.domain.Account
+import br.com.dto.AccountBankDto
+import br.com.response.Response
 import java.math.BigDecimal
 
 /**
@@ -8,7 +10,7 @@ import java.math.BigDecimal
  */
 interface AccountBankService {
 
-    fun persist(account: Account): Account
+    fun persist(accountBankDto: AccountBankDto): Response<Void>
 
     fun getBalance(account: Account): BigDecimal
 

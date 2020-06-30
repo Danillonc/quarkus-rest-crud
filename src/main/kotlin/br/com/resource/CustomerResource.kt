@@ -26,7 +26,7 @@ class CustomerResource(val customerService: CustomerService) {
 
     @PostMapping("/create")
     fun createCustomer(@RequestBody customerDto: CustomerDto): ResponseEntity<Response<CustomerDto>> {
-        val response: Response<CustomerDto> = Response<CustomerDto>()
+        var response: Response<CustomerDto> = Response()
         val result: Set<ConstraintViolation<CustomerDto>> = this.validator.validate(customerDto)
 
         //using hibernate validator because quarkus 1.5 doesn't support BindingResult spring.
@@ -35,32 +35,40 @@ class CustomerResource(val customerService: CustomerService) {
             return ResponseEntity.badRequest().body(response)
         }
 
-        var customer: Customer = Customer().convertToEntity(customerDto)
-        customer = customerService.persist(customer)
-
+        response = customerService.persist(customerDto)
         return ResponseEntity.ok().body(response)
     }
 
     @GetMapping("/{cpf}")
     fun getCustomer(@PathVariable cpf: String): ResponseEntity<Response<CustomerDto>> {
-        val response: Response<CustomerDto> = Response<CustomerDto>()
-        var customer: Customer? = customerService.findByCpf(cpf)
-        response.data = CustomerDto().convertToDto(customer)
+        var response: Response<CustomerDto> = Response()
+        response = customerService.findByCpf(cpf)
         return ResponseEntity.ok().body(response)
     }
 
     @GetMapping("/all")
     fun getAllCustomers(): ResponseEntity<Response<List<CustomerDto>>> {
-        val response: Response<List<CustomerDto>> = Response<List<CustomerDto>>()
+        val response: Response<List<CustomerDto>> = Response()
         val customers: List<CustomerDto>? = customerService.findAll()?.map { CustomerDto(it.name, it.cpf, it.email, it.surname, it.birthday, it.account) }
         response.data = customers
         return ResponseEntity.ok().body(response)
     }
 
-    /**Extension function to convert entity to DTO **/
-    fun CustomerDto.convertToDto(customer: Customer?) = CustomerDto(name = customer?.name!!, cpf = customer.cpf, email = customer.email, surname = customer.surname, birthday = customer.birthday, accounts = customer.account)
+    @PutMapping("/update/{cpf}")
+    fun updateCustomer(@PathVariable cpf: String, @RequestBody customerDto: CustomerDto): ResponseEntity<Response<CustomerDto>> {
+        var response: Response<CustomerDto> = Response()
+        val result: Set<ConstraintViolation<CustomerDto>> = this.validator.validate(customerDto)
 
-    /**Extension function to convert DTO to entity **/
-    fun Customer.convertToEntity(customerDto: CustomerDto) = Customer(name = customerDto.name, cpf = customerDto.cpf, email = customerDto.email, surname = customerDto.surname, birthday = customerDto.birthday)
+        //using hibernate validator because quarkus 1.5 doesn't support BindingResult spring.
+        if (result.isNotEmpty()) {
+            for (erro in result) response.erros.add(erro.message)
+            return ResponseEntity.badRequest().body(response)
+        }
+
+        response = customerService.update(cpf, customerDto)
+        return ResponseEntity.ok().body(response)
+    }
+
+
 
 }
