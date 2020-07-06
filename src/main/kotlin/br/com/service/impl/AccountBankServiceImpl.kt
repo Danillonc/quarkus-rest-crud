@@ -5,6 +5,7 @@ import br.com.domain.Customer
 import br.com.dto.AccountBankDto
 import br.com.enums.AccountTypeEnum
 import br.com.messages.ApiError
+import br.com.messages.enums.Messages
 import br.com.repository.AccountBankRepository
 import br.com.repository.CustomerRepository
 import br.com.response.Response
@@ -30,8 +31,13 @@ class AccountBankServiceImpl(val accountBankRepository: AccountBankRepository, v
         customerRepository.findByCpf(accountBankDto.cpf)?.let {
             customer = it
             account = convertToAccount(accountBankDto, customer)
-        } ?: response.erros.add(ApiError(HttpStatus.NOT_FOUND, "Customer not found.").toString())
-        if (response.erros.isEmpty()) accountBankRepository.save(account)
+        } ?: response.addMessage(Messages.CUSTOMER_NOT_FOUND)
+
+        response.messages.ifEmpty {
+            accountBankRepository.save(account)
+            response.addMessage(Messages.OK)
+        }
+
         return response
     }
 
@@ -53,14 +59,9 @@ class AccountBankServiceImpl(val accountBankRepository: AccountBankRepository, v
         TODO("Not yet implemented")
     }
 
-    private fun validateCustomer(customer: Customer?, response: Response<AccountBankDto>) {
-        if (customer == null) {
-            response.erros.add("Customer not found.")
-        }
-    }
 
     private fun convertToDto(account: Account): AccountBankDto = AccountBankDto(account.customer?.cpf!!)
 
-    private fun convertToAccount(accountDto: AccountBankDto, customer: Customer): Account = Account(BigDecimal.ZERO, BigDecimal.ZERO, AccountTypeEnum.getAccountType(accountDto.accountType), customer)
+    private fun convertToAccount(accountDto: AccountBankDto, customer: Customer): Account = Account(accountDto.balance, accountDto.overdrawn, AccountTypeEnum.getAccountType(accountDto.accountType), customer)
 
 }

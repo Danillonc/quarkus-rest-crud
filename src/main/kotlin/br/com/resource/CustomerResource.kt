@@ -1,10 +1,9 @@
 package br.com.resource
 
-import br.com.domain.Customer
-import br.com.dto.AccountBankDto
 import br.com.dto.CustomerDto
 import br.com.response.Response
 import br.com.service.CustomerService
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import javax.enterprise.inject.Default
@@ -31,7 +30,7 @@ class CustomerResource(val customerService: CustomerService) {
 
         //using hibernate validator because quarkus 1.5 doesn't support BindingResult spring.
         if (!result.isEmpty()) {
-            for (erro in result) response.erros.add(erro.message)
+            for (erro in result) response.addMessage(HttpStatus.UNPROCESSABLE_ENTITY.value(), erro.message)
             return ResponseEntity.badRequest().body(response)
         }
 
@@ -48,9 +47,8 @@ class CustomerResource(val customerService: CustomerService) {
 
     @GetMapping("/all")
     fun getAllCustomers(): ResponseEntity<Response<List<CustomerDto>>> {
-        val response: Response<List<CustomerDto>> = Response()
-        val customers: List<CustomerDto>? = customerService.findAll()?.map { CustomerDto(it.name, it.cpf, it.email, it.surname, it.birthday, it.account) }
-        response.data = customers
+        var response: Response<List<CustomerDto>> = Response()
+        response = customerService.findAll()
         return ResponseEntity.ok().body(response)
     }
 
@@ -61,14 +59,13 @@ class CustomerResource(val customerService: CustomerService) {
 
         //using hibernate validator because quarkus 1.5 doesn't support BindingResult spring.
         if (result.isNotEmpty()) {
-            for (erro in result) response.erros.add(erro.message)
+            for (erro in result) response.addMessage(HttpStatus.UNPROCESSABLE_ENTITY.value(), erro.message)
             return ResponseEntity.badRequest().body(response)
         }
 
         response = customerService.update(cpf, customerDto)
         return ResponseEntity.ok().body(response)
     }
-
 
 
 }
