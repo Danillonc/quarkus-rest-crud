@@ -23,5 +23,5 @@ data class CustomerDto (
         val email: String = "",
         val surname: String? = "",
         val birthday: String? = "",
-        val accounts: List<Account> = emptyList()
+        val accounts: List<AccountBankDto> = emptyList()
 )

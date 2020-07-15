@@ -1,16 +1,14 @@
 package br.com.resource
 
 import br.com.dto.AccountBankDto
+import br.com.dto.AccountDto
 import br.com.response.Response
 import br.com.service.AccountBankService
 import br.com.service.CustomerService
 import org.eclipse.microprofile.openapi.annotations.Operation
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import javax.enterprise.inject.Default
 import javax.inject.Inject
 import javax.validation.ConstraintViolation
@@ -29,11 +27,11 @@ class AccountBankResource(val accountService: AccountBankService, val customerSe
     @field: Default
     lateinit var validator: Validator
 
-    @Operation(summary = "API")
+
     @PostMapping("/create")
-    fun createAccount(@RequestBody accountBankDto: AccountBankDto): ResponseEntity<Response<Void>> {
-        var response: Response<Void> = Response()
-        val result: Set<ConstraintViolation<AccountBankDto>> = this.validator.validate(accountBankDto)
+    fun createAccount(@RequestBody accountDto: AccountDto): ResponseEntity<Response<Void>> {
+        var response = Response<Void>()
+        val result: Set<ConstraintViolation<AccountDto>> = this.validator.validate(accountDto)
 
         //using hibernate validator because quarkus 1.5 doesn't support BindingResult spring.
         if (!result.isEmpty()) {
@@ -41,8 +39,19 @@ class AccountBankResource(val accountService: AccountBankService, val customerSe
             return ResponseEntity.badRequest().body(response)
         }
 
-        response = accountService.persist(accountBankDto)
+        response = accountService.persist(accountDto.cpf, accountDto.accountType)
         return ResponseEntity.ok().body(response)
     }
+
+    @GetMapping("/info/{accountNumber}/{branchNumber}")
+    fun AccountInfo(@PathVariable accountNumber: Int, @PathVariable branchNumber: Int): ResponseEntity<Response<AccountBankDto>> {
+        var response: Response<AccountBankDto> = accountService.getAccountInfo(accountNumber, branchNumber)
+        return ResponseEntity.ok().body(response)
+    }
+
+    @GetMapping("/cash/{accountNumber}/{branchNumber}/{value}")
+    fun getCash() {
+    }
+
 
 }

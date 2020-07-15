@@ -1,6 +1,8 @@
 package br.com.service.impl
 
+import br.com.domain.Account
 import br.com.domain.Customer
+import br.com.dto.AccountBankDto
 import br.com.dto.CustomerDto
 import br.com.messages.ApiError
 import br.com.messages.enums.Messages
@@ -20,10 +22,10 @@ class CustomerServiceImpl(val customerRepository: CustomerRepository) : Customer
     private val logger = LoggerFactory.getLogger(CustomerServiceImpl::class.java)
 
     override fun persist(customerDto: CustomerDto): Response<CustomerDto> {
-        var response: Response<CustomerDto> = Response()
+        var response = Response<CustomerDto>()
 
         try {
-            var customer: Customer = Customer().convertToEntity(customerDto)
+            var customer = Customer().convertToEntity(customerDto)
             customer = customerRepository.save(customer)
             response.data = CustomerDto().convertToDto(customer)
             response.addMessage(Messages.OK)
@@ -35,7 +37,7 @@ class CustomerServiceImpl(val customerRepository: CustomerRepository) : Customer
 
 
     override fun findByCpf(cpf: String): Response<CustomerDto> {
-        var response: Response<CustomerDto> = Response()
+        var response = Response<CustomerDto>()
 
         try {
             customerRepository.findByCpf(cpf)?.let { response.data = CustomerDto().convertToDto(it) }
@@ -52,10 +54,18 @@ class CustomerServiceImpl(val customerRepository: CustomerRepository) : Customer
     }
 
     override fun findAll(): Response<List<CustomerDto>> {
-        var response: Response<List<CustomerDto>> = Response()
+        var response = Response<List<CustomerDto>>()
 
         try {
-            val customers: List<CustomerDto> = customerRepository.findAll().map { CustomerDto(it.name, it.cpf, it.email, it.surname, it.birthday, it.account) }
+            val customers = customerRepository.findAll().map {
+                CustomerDto(
+                        it.name,
+                        it.cpf,
+                        it.email,
+                        it.surname,
+                        it.birthday,
+                        it.account.map { AccountBankDto(it.type.name, it?.balance!!, it?.overdrawn!!, it.accountNumber, it.branchNumber) })
+            }
             response.data = customers
             response.addMessage(Messages.OK)
 
@@ -68,7 +78,7 @@ class CustomerServiceImpl(val customerRepository: CustomerRepository) : Customer
 
 
     override fun update(cpf: String, customerDto: CustomerDto): Response<CustomerDto> {
-        var response: Response<CustomerDto> = Response()
+        var response = Response<CustomerDto>()
         var customer: Customer? = null
 
         try {
@@ -90,7 +100,7 @@ class CustomerServiceImpl(val customerRepository: CustomerRepository) : Customer
     }
 
     override fun delete(cpf: String): Response<Void> {
-        var response: Response<Void> = Response()
+        var response = Response<Void>()
 
         try {
             customerRepository.findByCpf(cpf)?.let {
@@ -105,8 +115,9 @@ class CustomerServiceImpl(val customerRepository: CustomerRepository) : Customer
         return response
     }
 
+
     /**Extension function to convert entity to DTO **/
-    fun CustomerDto.convertToDto(customer: Customer?) = CustomerDto(name = customer?.name!!, cpf = customer.cpf, email = customer.email, surname = customer.surname, birthday = customer.birthday, accounts = customer.account)
+    fun CustomerDto.convertToDto(customer: Customer?) = CustomerDto(name = customer?.name!!, cpf = customer.cpf, email = customer.email, surname = customer.surname, birthday = customer.birthday, accounts = customer.account.map { AccountBankDto(it.type.name, it?.balance!!, it?.overdrawn!!, it.accountNumber, it.branchNumber) })
 
     /**Extension function to convert DTO to entity **/
     fun Customer.convertToEntity(customerDto: CustomerDto) = Customer(name = customerDto.name, cpf = customerDto.cpf, email = customerDto.email, surname = customerDto.surname, birthday = customerDto.birthday)

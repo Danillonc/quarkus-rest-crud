@@ -10,11 +10,11 @@ import java.math.BigDecimal
  */
 interface AccountBankService {
 
-    fun persist(accountBankDto: AccountBankDto): Response<Void>
+    fun persist(cpf: String, accountType: String): Response<Void>
 
-    fun getBalance(account: Account): BigDecimal
+    fun getAccountInfo(accountNumber: Int, branchNumber: Int): Response<AccountBankDto>
 
-    fun getCashAccount(account: Account): Account
+    fun getCashAccount(account: Account): Response<BigDecimal>
 
-    fun getOverdrawn(account: Account): BigDecimal
+    fun getOverdrawn(account: Account): Response<BigDecimal>
 }

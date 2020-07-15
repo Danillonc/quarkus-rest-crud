@@ -24,44 +24,51 @@ class AccountBankServiceImpl(val accountBankRepository: AccountBankRepository, v
 
     private val logger = LoggerFactory.getLogger(AccountBankServiceImpl::class.java)
 
-    override fun persist(accountBankDto: AccountBankDto): Response<Void> {
-        var response: Response<Void> = Response()
-        val customer: Customer?
+    override fun persist(cpf: String, accountType: String): Response<Void> {
+        var response = Response<Void>()
         var account: Account? = null
-        customerRepository.findByCpf(accountBankDto.cpf)?.let {
-            customer = it
-            account = convertToAccount(accountBankDto, customer)
-        } ?: response.addMessage(Messages.CUSTOMER_NOT_FOUND)
 
-        response.messages.ifEmpty {
-            accountBankRepository.save(account)
-            response.addMessage(Messages.OK)
+        try {
+            customerRepository.findByCpf(cpf)?.let {
+                account = if (AccountTypeEnum.isPF(accountType)) AccountTypeEnum.PF.accountType(it) else AccountTypeEnum.PJ.accountType(it)
+            } ?: response.addMessage(Messages.CUSTOMER_NOT_FOUND)
+
+            response.messages.ifEmpty {
+                accountBankRepository.save(account)
+                response.addMessage(Messages.OK)
+            }
+        } catch (e: Exception) {
+            logger.error("Error to persist a account => :" + e.message)
         }
 
         return response
     }
 
-    override fun getBalance(account: Account): BigDecimal {
-        var accBalance: Account? = null
+
+    override fun getAccountInfo(accountNumber: Int, branchNumber: Int): Response<AccountBankDto> {
+        var response = Response<AccountBankDto>()
         try {
-            accBalance = accountBankRepository.findById(account.id).orElseThrow()
+            accountBankRepository.findByAccountNumberAndBranchNumber(accountNumber, branchNumber)?.let {
+                response.data = convertToDto(it)
+                response.addMessage(Messages.ACCOUNT_INFO_OK)
+            } ?: response.addMessage(Messages.ACCOUNT_NOT_FOUND)
         } catch (e: Exception) {
-            logger.info("Dados da conta bancária não encontrado para retorno do saldo .")
+            logger.info("Error to get balance for account param => :" + e.message)
         }
-        return accBalance?.balance ?: BigDecimal.ZERO
+        return response
     }
 
-    override fun getCashAccount(account: Account): Account {
+    override fun getCashAccount(account: Account): Response<BigDecimal> {
         TODO("Veriricar o uso de thread pois não podem ocorrer mais de 1 saque no mesmo momento")
     }
 
-    override fun getOverdrawn(account: Account): BigDecimal {
+    override fun getOverdrawn(account: Account): Response<BigDecimal> {
         TODO("Not yet implemented")
     }
 
 
-    private fun convertToDto(account: Account): AccountBankDto = AccountBankDto(account.customer?.cpf!!)
+    private fun convertToDto(account: Account): AccountBankDto = AccountBankDto(account.type.name, account.balance!!, account.overdrawn!!, account.accountNumber, account.branchNumber)
 
-    private fun convertToAccount(accountDto: AccountBankDto, customer: Customer): Account = Account(accountDto.balance, accountDto.overdrawn, AccountTypeEnum.getAccountType(accountDto.accountType), customer)
+    private fun convertToAccount(accountDto: AccountBankDto, customer: Customer): Account = Account(accountDto.accountNumber, accountDto.branchNumber, accountDto.balance, accountDto.overdrawn, AccountTypeEnum.getAccountType(accountDto.accountType), customer)
 
 }

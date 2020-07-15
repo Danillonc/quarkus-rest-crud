@@ -10,4 +10,12 @@ import org.springframework.stereotype.Repository
  */
 @Repository
 interface AccountBankRepository: CrudRepository<Account, Long> {
+
+    /**
+     * Function responsible to retrieve an account by params.
+     * @param accountNumber - Identifies account
+     * @param branchNumber - Identifies bank
+     */
+    fun findByAccountNumberAndBranchNumber(accountNumber: Int, branchNumber: Int): Account?
+
 }

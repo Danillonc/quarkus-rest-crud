@@ -25,7 +25,7 @@ class CustomerResource(val customerService: CustomerService) {
 
     @PostMapping("/create")
     fun createCustomer(@RequestBody customerDto: CustomerDto): ResponseEntity<Response<CustomerDto>> {
-        var response: Response<CustomerDto> = Response()
+        var response = Response<CustomerDto>()
         val result: Set<ConstraintViolation<CustomerDto>> = this.validator.validate(customerDto)
 
         //using hibernate validator because quarkus 1.5 doesn't support BindingResult spring.
@@ -40,21 +40,19 @@ class CustomerResource(val customerService: CustomerService) {
 
     @GetMapping("/{cpf}")
     fun getCustomer(@PathVariable cpf: String): ResponseEntity<Response<CustomerDto>> {
-        var response: Response<CustomerDto> = Response()
-        response = customerService.findByCpf(cpf)
+        var response: Response<CustomerDto> = customerService.findByCpf(cpf)
         return ResponseEntity.ok().body(response)
     }
 
     @GetMapping("/all")
     fun getAllCustomers(): ResponseEntity<Response<List<CustomerDto>>> {
-        var response: Response<List<CustomerDto>> = Response()
-        response = customerService.findAll()
+        var response: Response<List<CustomerDto>> = customerService.findAll()
         return ResponseEntity.ok().body(response)
     }
 
     @PutMapping("/update/{cpf}")
     fun updateCustomer(@PathVariable cpf: String, @RequestBody customerDto: CustomerDto): ResponseEntity<Response<CustomerDto>> {
-        var response: Response<CustomerDto> = Response()
+        var response = Response<CustomerDto>()
         val result: Set<ConstraintViolation<CustomerDto>> = this.validator.validate(customerDto)
 
         //using hibernate validator because quarkus 1.5 doesn't support BindingResult spring.
