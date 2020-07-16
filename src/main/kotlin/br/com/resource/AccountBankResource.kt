@@ -9,6 +9,7 @@ import org.eclipse.microprofile.openapi.annotations.Operation
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.math.BigDecimal
 import javax.enterprise.inject.Default
 import javax.inject.Inject
 import javax.validation.ConstraintViolation
@@ -49,8 +50,10 @@ class AccountBankResource(val accountService: AccountBankService, val customerSe
         return ResponseEntity.ok().body(response)
     }
 
-    @GetMapping("/cash/{accountNumber}/{branchNumber}/{value}")
-    fun getCash() {
+    @GetMapping("/cash/{accountNumber}/{branchNumber}/{cash}")
+    fun getCash(@PathVariable accountNumber: Int, @PathVariable branchNumber: Int, @PathVariable cash: BigDecimal): ResponseEntity<Response<Void>> {
+        var response: Response<Void> = accountService.getCashAccount(accountNumber, branchNumber, cash)
+        return ResponseEntity.ok().body(response)
     }
 
 

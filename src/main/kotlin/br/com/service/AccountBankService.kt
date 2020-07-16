@@ -14,7 +14,7 @@ interface AccountBankService {
 
     fun getAccountInfo(accountNumber: Int, branchNumber: Int): Response<AccountBankDto>
 
-    fun getCashAccount(account: Account): Response<BigDecimal>
+    fun getCashAccount(accountNumber: Int, branchNumber: Int, cash: BigDecimal): Response<Void>
 
     fun getOverdrawn(account: Account): Response<BigDecimal>
 }

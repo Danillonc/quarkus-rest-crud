@@ -7,11 +7,7 @@ enum class Messages(val status: HttpStatus, val message: String) {
     CUSTOMER_NOT_FOUND(HttpStatus.NOT_FOUND, "Customer not found!"),
     ACCOUNT_NOT_FOUND(HttpStatus.NOT_FOUND, "Account not found!"),
     CPF_NOT_FOUND(HttpStatus.NOT_FOUND, "Cpf not found!"),
-    ACCOUNT_INFO_OK(HttpStatus.OK, "Get account info with success!");
+    ACCOUNT_INFO_OK(HttpStatus.OK, "Get account info with success!"),
+    INSUFFICIENT_FUNDS(HttpStatus.UNPROCESSABLE_ENTITY, "Insufficiente funds!");
 
-    companion object {
-        fun getMessage(messages: Messages): String {
-            return StringBuilder().append("Status: ").append(messages.status).append(" Message: ").append(messages.message).toString()
-        }
-    }
 }

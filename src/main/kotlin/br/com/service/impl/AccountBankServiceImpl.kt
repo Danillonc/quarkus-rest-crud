@@ -53,19 +53,58 @@ class AccountBankServiceImpl(val accountBankRepository: AccountBankRepository, v
                 response.addMessage(Messages.ACCOUNT_INFO_OK)
             } ?: response.addMessage(Messages.ACCOUNT_NOT_FOUND)
         } catch (e: Exception) {
-            logger.info("Error to get balance for account param => :" + e.message)
+            logger.error("Error to get info for account  => :" + e.message)
         }
         return response
     }
 
-    override fun getCashAccount(account: Account): Response<BigDecimal> {
-        TODO("Veriricar o uso de thread pois não podem ocorrer mais de 1 saque no mesmo momento")
+    override fun getCashAccount(accountNumber: Int, branchNumber: Int, cash: BigDecimal): Response<Void> {
+        var response = Response<Void>()
+        var newAccount: Account? = null
+        try {
+            accountBankRepository.findByAccountNumberAndBranchNumber(accountNumber, branchNumber)?.let {
+                newAccount = verifyAccountFunds(it, cash, response)
+            } ?: response.addMessage(Messages.ACCOUNT_NOT_FOUND)
+
+            if (response.messages.isEmpty()) {
+                accountBankRepository.save(newAccount)
+                response.addMessage(Messages.OK)
+            }
+        } catch (e: Exception) {
+            logger.error("Error to get cash from account => :" + e.message)
+        }
+        return response
     }
 
     override fun getOverdrawn(account: Account): Response<BigDecimal> {
         TODO("Not yet implemented")
     }
 
+    /**
+     * Function responsivle to verify funds in account to get a cash.
+     */
+    private fun verifyAccountFunds(account: Account, cash: BigDecimal, response: Response<Void>): Account {
+        val newBalance: BigDecimal?
+        val negativeBalance: BigDecimal?
+        if (account.balance?.compareTo(BigDecimal.ZERO) == 1 && (account.balance?.compareTo(cash) == 1 || account.balance?.compareTo(cash) == 0)) {
+            newBalance = account.balance?.subtract(cash)
+            account.balance = newBalance
+        } else if(account.overdrawn?.compareTo(BigDecimal.ZERO) == 1 && (account.overdrawn?.compareTo(cash) == 1 || account.overdrawn?.compareTo(cash) == 0)) {
+            newBalance = account.overdrawn?.subtract(cash)
+            negativeBalance = account.balance?.subtract(cash)
+            account.overdrawn = newBalance
+            account.balance = negativeBalance
+        } else {
+            response.addMessage(Messages.INSUFFICIENT_FUNDS)
+        }
+//        if (account.balance?.compareTo(BigDecimal.ZERO) == 0 && account.overdrawn?.compareTo(BigDecimal.ZERO) == 0) {
+//        } else if (account.balance?.compareTo(BigDecimal.ZERO) == 1) {
+//            newBalance = account.balance?.subtract(cash)
+//            account.balance = newBalance
+//        } else {
+//        }
+        return account
+    }
 
     private fun convertToDto(account: Account): AccountBankDto = AccountBankDto(account.type.name, account.balance!!, account.overdrawn!!, account.accountNumber, account.branchNumber)
 
