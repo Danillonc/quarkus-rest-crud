@@ -76,8 +76,22 @@ class AccountBankServiceImpl(val accountBankRepository: AccountBankRepository, v
         return response
     }
 
-    override fun getOverdrawn(account: Account): Response<BigDecimal> {
-        TODO("Not yet implemented")
+    override fun sendCash(accountNumber: Int, branchNumber: Int, cash: BigDecimal): Response<Void> {
+        var response = Response<Void>()
+        var newAccount: Account? = null
+        try {
+            accountBankRepository.findByAccountNumberAndBranchNumber(accountNumber, branchNumber)?.let {
+                newAccount = depositCashAccount(it, cash)
+            } ?: response.addMessage(Messages.ACCOUNT_NOT_FOUND)
+
+            if (response.messages.isEmpty()) {
+                accountBankRepository.save(newAccount)
+                response.addMessage(Messages.OK)
+            }
+        } catch (e: Exception) {
+            logger.error("Error to send cash to account => :" + e.message)
+        }
+        return response
     }
 
     /**
@@ -89,7 +103,7 @@ class AccountBankServiceImpl(val accountBankRepository: AccountBankRepository, v
         if (account.balance?.compareTo(BigDecimal.ZERO) == 1 && (account.balance?.compareTo(cash) == 1 || account.balance?.compareTo(cash) == 0)) {
             newBalance = account.balance?.subtract(cash)
             account.balance = newBalance
-        } else if(account.overdrawn?.compareTo(BigDecimal.ZERO) == 1 && (account.overdrawn?.compareTo(cash) == 1 || account.overdrawn?.compareTo(cash) == 0)) {
+        } else if (account.overdrawn?.compareTo(BigDecimal.ZERO) == 1 && (account.overdrawn?.compareTo(cash) == 1 || account.overdrawn?.compareTo(cash) == 0)) {
             newBalance = account.overdrawn?.subtract(cash)
             negativeBalance = account.balance?.subtract(cash)
             account.overdrawn = newBalance
@@ -97,12 +111,20 @@ class AccountBankServiceImpl(val accountBankRepository: AccountBankRepository, v
         } else {
             response.addMessage(Messages.INSUFFICIENT_FUNDS)
         }
-//        if (account.balance?.compareTo(BigDecimal.ZERO) == 0 && account.overdrawn?.compareTo(BigDecimal.ZERO) == 0) {
-//        } else if (account.balance?.compareTo(BigDecimal.ZERO) == 1) {
-//            newBalance = account.balance?.subtract(cash)
-//            account.balance = newBalance
-//        } else {
-//        }
+        return account
+    }
+
+    private fun depositCashAccount(account: Account, cash: BigDecimal): Account {
+        val newBalance: BigDecimal?
+        val newOverdrawn: BigDecimal?
+        if (account.balance?.compareTo(BigDecimal.ZERO) == 0 || account.balance?.compareTo(BigDecimal.ZERO) == 1) {
+            account.balance = cash
+        } else if (account.balance?.compareTo(BigDecimal.ZERO) == -1) {
+            newBalance = account.balance?.plus(cash)
+            newOverdrawn = account.overdrawn?.minus(cash)
+            account.balance = newBalance
+            account.overdrawn = newOverdrawn
+        }
         return account
     }
 

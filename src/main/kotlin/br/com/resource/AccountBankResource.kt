@@ -56,5 +56,11 @@ class AccountBankResource(val accountService: AccountBankService, val customerSe
         return ResponseEntity.ok().body(response)
     }
 
+    @GetMapping("/cash/deposit/{accountNumber}/{branchNumber}/{cash}")
+    fun sendCash(@PathVariable accountNumber: Int, @PathVariable branchNumber: Int, @PathVariable cash: BigDecimal): ResponseEntity<Response<Void>> {
+        var response: Response<Void> = accountService.sendCash(accountNumber, branchNumber, cash)
+        return ResponseEntity.ok().body(response)
+    }
+
 
 }
